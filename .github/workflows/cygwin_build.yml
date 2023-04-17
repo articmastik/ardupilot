@@ -25,7 +25,6 @@ jobs:
           HOME: ${{ runner.workspace }}/ardupilot
         run: |
           C:\Cygwin\bin\bash --login -c "Tools/scripts/cygwin_build.sh"
-
       - name: Archive build
         uses: actions/upload-artifact@v2
         with:
