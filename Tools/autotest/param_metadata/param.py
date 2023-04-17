@@ -16,23 +16,13 @@ class Vehicle(object):
 
 
 class Library(object):
-    def __init__(self, name, reference=None, not_rst=False, check_duplicates=False):
+    def __init__(self, name):
         self.set_name(name)
         self.params = []
-        if reference is not None:
-            self.reference = reference
-        self.not_rst = not_rst
-        self.check_duplicates = check_duplicates
 
     def set_name(self, name):
         self.name = name
         self.reference = name
-
-    def has_param(self, pname):
-        for p in self.params:
-            if pname == p.name:
-                return True
-        return False
 
 known_param_fields = [
              'Description',
@@ -123,7 +113,6 @@ known_units = {
              'octal'   : 'octal'                 ,
              'RPM'     : 'Revolutions Per Minute',
              'kg/m/m'  : 'kilograms per square meter', # metre is the SI unit name, meter is the american spelling of it
-             'kg/m/m/m': 'kilograms per cubic meter',
              }
 
 required_param_fields = [
@@ -132,11 +121,6 @@ required_param_fields = [
              'User',
                       ]
 
-required_library_param_fields = [
-             'Description',
-             'DisplayName',
-                      ]
-    
 known_group_fields = [
                       'Path',
                       ]

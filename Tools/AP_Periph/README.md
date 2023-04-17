@@ -44,9 +44,7 @@ An AP_Periph UAVCAN firmware supports these UAVCAN features:
  - parameter storage in flash
  - easy bootloader update
  - high resiliance features using watchdog, CRC and board checks
- - firmware and parameter update via MissionPlanner or DroneCAN GUI tool when attached to an autopilot
- - firmware update via USB if USB port is provided
- - parameter update using SLCAN and DroneCAN GUI on standalone peripheral via USB, if provided
+ - firmware update via MissionPlanner or uavcan-gui-tool
 
 # Building
 

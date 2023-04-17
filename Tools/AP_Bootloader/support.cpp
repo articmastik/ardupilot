@@ -17,7 +17,6 @@
 #include "mcu_f7.h"
 #include "mcu_h7.h"
 #include "mcu_g4.h"
-#include "mcu_l4.h"
 
 // optional uprintf() code for debug
 // #define BOOTLOADER_DEBUG SD1
@@ -111,15 +110,10 @@ void flash_set_keep_unlocked(bool set)
 /*
   read a word at offset relative to flash base
  */
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-align"
-
 uint32_t flash_func_read_word(uint32_t offset)
 {
     return *(const uint32_t *)(flash_base + offset);
 }
-#pragma GCC diagnostic pop
 
 bool flash_func_write_word(uint32_t offset, uint32_t v)
 {
@@ -139,9 +133,9 @@ uint32_t flash_func_sector_size(uint32_t sector)
     return stm32_flash_getpagesize(flash_base_page+sector);
 }
 
-bool flash_func_erase_sector(uint32_t sector, bool force_erase)
+bool flash_func_erase_sector(uint32_t sector)
 {
-    if (force_erase || !stm32_flash_ispageerased(flash_base_page+sector)) {
+    if (!stm32_flash_ispageerased(flash_base_page+sector)) {
         return stm32_flash_erasepage(flash_base_page+sector);
     }
     return true;
@@ -243,16 +237,16 @@ uint32_t get_mcu_desc(uint32_t max, uint8_t *revstr)
 
     mcu_des_t des = mcu_descriptions[STM32_UNKNOWN];
 
-    for (const auto &desc : mcu_descriptions) {
-        if (mcuid == desc.mcuid) {
-            des = desc;
+    for (int i = 0; i < ARRAY_SIZE(mcu_descriptions); i++) {
+        if (mcuid == mcu_descriptions[i].mcuid) {
+            des = mcu_descriptions[i];
             break;
         }
     }
 
-    for (const auto &rev : silicon_revs) {
-        if (rev.revid == revid) {
-            des.rev = rev.rev;
+    for (int i = 0; i < ARRAY_SIZE(silicon_revs); i++) {
+        if (silicon_revs[i].revid == revid) {
+            des.rev = silicon_revs[i].rev;
         }
     }
 
@@ -272,6 +266,24 @@ uint32_t get_mcu_desc(uint32_t max, uint8_t *revstr)
     }
 
     return  strp - revstr;
+}
+
+/*
+  see if we should limit flash to 1M on devices with older revisions
+ */
+bool check_limit_flash_1M(void)
+{
+#ifdef STM32F427xx
+    uint32_t idcode = (*(uint32_t *)DBGMCU_BASE);
+    uint16_t revid = ((idcode & REVID_MASK) >> 16);
+
+    for (int i = 0; i < ARRAY_SIZE(silicon_revs); i++) {
+        if (silicon_revs[i].revid == revid) {
+            return silicon_revs[i].limit_flash_size_1M;
+        }
+    }
+#endif
+    return false;
 }
 
 void led_on(unsigned led)
@@ -433,14 +445,14 @@ void init_uarts(void)
 
 #if HAL_USE_SERIAL == TRUE
     sercfg.speed = BOOTLOADER_BAUDRATE;
-
-    for (const auto &uart : uarts) {
+    
+    for (uint8_t i=0; i<ARRAY_SIZE(uarts); i++) {
 #if HAL_USE_SERIAL_USB == TRUE
-        if (uart == (BaseChannel *)&SDU1) {
+        if (uarts[i] == (BaseChannel *)&SDU1) {
             continue;
         }
 #endif
-        sdStart((SerialDriver *)uart, &sercfg);
+        sdStart((SerialDriver *)uarts[i], &sercfg);
     }
 #endif
 }
